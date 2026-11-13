@@ -4,6 +4,7 @@
  * As permissões são garantidas pela RLS (somente administradores).
  */
 import { supabase } from "@/integrations/supabase/client";
+import { getLocalDateInputValue } from "@/lib/date";
 import {
   onlyDigits,
   type Client,
@@ -29,8 +30,10 @@ export type NegotiationInput = {
   status: NegotiationStatus;
   reason: string;
   responsible_id: string;
-  registered_on: string;
-  next_contact_on: string;
+  /** Data de início do contrato do cliente na VEXFO (obrigatória no formulário). */
+  contract_started_on: string;
+  /** Data em que o cliente ficou em negociação (não é agendamento de contato). */
+  negotiation_started_on: string;
   notes: string;
 };
 
@@ -196,13 +199,18 @@ export const commercialApi = {
       status: input.status,
       reason: input.reason.trim(),
       responsible_id: input.responsible_id || null,
-      registered_on: input.registered_on,
-      next_contact_on: input.next_contact_on || null,
+      contract_started_on: input.contract_started_on || null,
+      negotiation_started_on: input.negotiation_started_on || null,
       notes: orNull(input.notes),
     };
+    // A data do cadastro (registered_on) continua interna: definida só na criação e nunca
+    // alterada pela edição. O próximo contato (next_contact_on) é controlado apenas pelo
+    // histórico de contatos ("Registrar contato"), por isso não é enviado aqui.
     const query = existing
       ? supabase.from("negotiations").update(payload).eq("id", existing.id)
-      : supabase.from("negotiations").insert(payload);
+      : supabase
+          .from("negotiations")
+          .insert({ ...payload, registered_on: getLocalDateInputValue() });
     const { error } = await query;
     if (error) throw error;
   },

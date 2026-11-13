@@ -53,13 +53,21 @@ function negotiationColumns(
   today: string,
   converted = false,
 ): PdfColumn<Negotiation>[] {
-  const fixed = 62 + 122 + 108 + 86 + 92;
+  const fixed = 88 + 112 + 96 + 78 + 88;
   return [
     {
-      label: converted ? "Cadastro / Conversão" : "Cadastro / Próx. contato",
-      width: 62,
+      label: "Datas",
+      width: 88,
       cell: (n) => {
-        const out: PdfPara[] = [{ text: formatDateBR(n.registered_on), bold: true }];
+        const out: PdfPara[] = [
+          {
+            text: `Contrato: ${n.contract_started_on ? formatDateBR(n.contract_started_on) : "—"}`,
+            bold: true,
+          },
+          {
+            text: `Negociação: ${n.negotiation_started_on ? formatDateBR(n.negotiation_started_on) : "—"}`,
+          },
+        ];
         if (converted && n.converted_at) {
           out.push({
             text: `Conv.: ${formatDateBR(n.converted_at.slice(0, 10))}`,
@@ -68,20 +76,20 @@ function negotiationColumns(
         } else if (n.next_contact_on) {
           const late = contactState(n, today) === "atrasado";
           out.push({
-            text: `Próx.: ${formatDateBR(n.next_contact_on)}`,
+            text: `Próx. contato: ${formatDateBR(n.next_contact_on)}`,
             color: late ? PDF_COLORS.red : PDF_COLORS.text,
             bold: late,
           });
           if (late) out.push({ text: "(atrasado)", color: PDF_COLORS.red });
         } else {
-          out.push({ text: "Próx.: —", color: PDF_COLORS.muted });
+          out.push({ text: "Próx. contato: —", color: PDF_COLORS.muted });
         }
         return out;
       },
     },
     {
       label: "Cliente / Contato",
-      width: 122,
+      width: 112,
       cell: (n) => {
         const c = n.client;
         const out: PdfPara[] = [{ text: t(c?.name) || "Cliente não informado", bold: true }];
@@ -97,7 +105,7 @@ function negotiationColumns(
     },
     {
       label: "Endereço / Bairro",
-      width: 108,
+      width: 96,
       cell: (n) => [
         n.client?.address
           ? { text: t(n.client.address) }
@@ -107,13 +115,13 @@ function negotiationColumns(
     },
     {
       label: "Planos",
-      width: 86,
+      width: 78,
       cell: (n) => [
         { text: `Atual: ${t(n.current_plan) || "—"}` },
         { text: `Interesse: ${t(n.interested_plan) || "—"}`, bold: Boolean(n.interested_plan) },
       ],
     },
-    { label: "Motivo", width: 92, cell: (n) => [{ text: t(n.reason) }] },
+    { label: "Motivo", width: 88, cell: (n) => [{ text: t(n.reason) }] },
     {
       label: "Responsável",
       width: PDF_CONTENT_WIDTH - fixed,

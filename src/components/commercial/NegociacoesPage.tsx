@@ -94,8 +94,8 @@ type NegForm = {
   reasonChoice: string;
   customReason: string;
   responsible_id: string;
-  registered_on: string;
-  next_contact_on: string;
+  contract_started_on: string;
+  negotiation_started_on: string;
   notes: string;
 };
 
@@ -238,8 +238,8 @@ export function NegociacoesPage() {
       reasonChoice: NEGOTIATION_REASONS[0],
       customReason: "",
       responsible_id: me ?? "",
-      registered_on: today,
-      next_contact_on: "",
+      contract_started_on: "",
+      negotiation_started_on: "",
       notes: "",
     });
   };
@@ -255,8 +255,8 @@ export function NegociacoesPage() {
       status: n.status,
       ...reasonToForm(n.reason),
       responsible_id: n.responsible_id ?? "",
-      registered_on: n.registered_on,
-      next_contact_on: n.next_contact_on ?? "",
+      contract_started_on: n.contract_started_on ?? "",
+      negotiation_started_on: n.negotiation_started_on ?? "",
       notes: n.notes ?? "",
     });
   };
@@ -273,6 +273,7 @@ export function NegociacoesPage() {
     if (!form.client.name.trim()) return toast.error("Informe o nome do cliente.");
     if (cpfError(form.client.cpf)) return toast.error("CPF inválido.");
     if (!reason) return toast.error("Informe o motivo.");
+    if (!form.contract_started_on) return toast.error("Informe a data de início do contrato.");
     setSaving(true);
     try {
       await commercialApi.saveNegotiation(
@@ -283,8 +284,8 @@ export function NegociacoesPage() {
           status: form.status,
           reason,
           responsible_id: form.responsible_id,
-          registered_on: form.registered_on,
-          next_contact_on: form.next_contact_on,
+          contract_started_on: form.contract_started_on,
+          negotiation_started_on: form.negotiation_started_on,
           notes: form.notes,
         },
         editing,
@@ -529,7 +530,8 @@ export function NegociacoesPage() {
                     <th className="text-left px-4 py-3">Situação</th>
                     <th className="text-left px-4 py-3">Motivo</th>
                     <th className="text-left px-4 py-3">Responsável</th>
-                    <th className="text-left px-4 py-3">Cadastro</th>
+                    <th className="text-left px-4 py-3">Início do contrato</th>
+                    <th className="text-left px-4 py-3">Em negociação desde</th>
                     <th className="text-left px-4 py-3">Próximo contato</th>
                     <th className="text-right px-4 py-3">Ações</th>
                   </tr>
@@ -571,7 +573,10 @@ export function NegociacoesPage() {
                         {profileName(n.responsible_id)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        {formatDateBR(n.registered_on)}
+                        {n.contract_started_on ? formatDateBR(n.contract_started_on) : "—"}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {n.negotiation_started_on ? formatDateBR(n.negotiation_started_on) : "—"}
                       </td>
                       <td className="px-4 py-3">
                         <NextContactBadge date={n.next_contact_on} state={contactState(n, today)} />
@@ -641,7 +646,14 @@ export function NegociacoesPage() {
                 </div>
                 <p className="text-sm">{n.reason}</p>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                  <span>Cadastro: {formatDateBR(n.registered_on)}</span>
+                  <span>
+                    Início do contrato:{" "}
+                    {n.contract_started_on ? formatDateBR(n.contract_started_on) : "—"}
+                  </span>
+                  <span>
+                    Em negociação desde:{" "}
+                    {n.negotiation_started_on ? formatDateBR(n.negotiation_started_on) : "—"}
+                  </span>
                   <span>Resp.: {profileName(n.responsible_id)}</span>
                   <span className="flex items-center gap-1">
                     Próx.:{" "}
@@ -775,19 +787,19 @@ export function NegociacoesPage() {
                       </SelectContent>
                     </Select>
                   </Field>
-                  <Field label="Data do cadastro *">
+                  <Field label="Data de início do contrato *">
                     <Input
                       type="date"
                       required
-                      value={form.registered_on}
-                      onChange={(e) => upd("registered_on", e.target.value)}
+                      value={form.contract_started_on}
+                      onChange={(e) => upd("contract_started_on", e.target.value)}
                     />
                   </Field>
-                  <Field label="Próximo contato">
+                  <Field label="Data que ficou em negociação">
                     <Input
                       type="date"
-                      value={form.next_contact_on}
-                      onChange={(e) => upd("next_contact_on", e.target.value)}
+                      value={form.negotiation_started_on}
+                      onChange={(e) => upd("negotiation_started_on", e.target.value)}
                     />
                   </Field>
                 </div>
@@ -950,8 +962,19 @@ const NegotiationDetails = forwardRef<{ reloadContacts: () => void }, DetailsPro
       ["Plano de interesse", n.interested_plan || "—"],
       ["Motivo", n.reason],
       ["Responsável", responsibleName],
-      ["Data do cadastro", formatDateBR(n.registered_on)],
-      ["Próximo contato", <NextContactBadge key="nc" date={n.next_contact_on} state={state} />],
+      [
+        "Data de início do contrato",
+        n.contract_started_on ? formatDateBR(n.contract_started_on) : "Não informada",
+      ],
+      [
+        "Data que ficou em negociação",
+        n.negotiation_started_on ? formatDateBR(n.negotiation_started_on) : "Não informada",
+      ],
+      [
+        "Próximo contato (retorno)",
+        <NextContactBadge key="nc" date={n.next_contact_on} state={state} />,
+      ],
+      ["Registro criado em", formatDateBR(n.registered_on)],
     ];
     if (n.converted_at) info.push(["Convertido em", formatDateTime(n.converted_at)]);
 

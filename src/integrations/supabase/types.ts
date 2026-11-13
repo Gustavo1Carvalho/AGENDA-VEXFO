@@ -141,12 +141,14 @@ export type Database = {
       negotiations: {
         Row: {
           client_id: string
+          contract_started_on: string | null
           converted_at: string | null
           created_at: string
           created_by: string | null
           current_plan: string | null
           id: string
           interested_plan: string | null
+          negotiation_started_on: string | null
           next_contact_on: string | null
           notes: string | null
           reason: string
@@ -157,12 +159,14 @@ export type Database = {
         }
         Insert: {
           client_id: string
+          contract_started_on?: string | null
           converted_at?: string | null
           created_at?: string
           created_by?: string | null
           current_plan?: string | null
           id?: string
           interested_plan?: string | null
+          negotiation_started_on?: string | null
           next_contact_on?: string | null
           notes?: string | null
           reason: string
@@ -173,12 +177,14 @@ export type Database = {
         }
         Update: {
           client_id?: string
+          contract_started_on?: string | null
           converted_at?: string | null
           created_at?: string
           created_by?: string | null
           current_plan?: string | null
           id?: string
           interested_plan?: string | null
+          negotiation_started_on?: string | null
           next_contact_on?: string | null
           notes?: string | null
           reason?: string
